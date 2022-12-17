@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/go-vgo/robotgo"
+	"github.com/kindlyfire/go-keylogger"
 	"github.com/lucasb-eyer/go-colorful"
 	"math/rand"
+	"time"
 )
 
 var screenX, screenY = robotgo.GetScreenSize()
@@ -15,6 +17,10 @@ var maxResponseTime = 130 // in milliseconds
 var detectColor = "#9a24ab"
 var lastColor = ""
 var purple, _ = colorful.Hex(detectColor)
+
+const (
+	delayKeyFetch = 10 // in milliseconds
+)
 
 func main() {
 	fmt.Println("[ sus software utility started! ]")
@@ -28,11 +34,18 @@ func main() {
 	fmt.Printf("> (Use 'p' to toggle)\n\n")
 
 	go func() {
+		kl := keylogger.NewKeylogger()
+
 		for {
-			if robotgo.AddEvent("p") {
+			key := kl.GetKey()
+
+			// keycode 80 = p
+			if (!key.Empty) && (key.Keycode == 80) {
 				isEnabled = !isEnabled
 				fmt.Printf("> Software enabled: %v\n", isEnabled)
 			}
+
+			time.Sleep(delayKeyFetch * time.Millisecond)
 		}
 	}()
 

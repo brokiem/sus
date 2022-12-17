@@ -4,8 +4,10 @@ go 1.19
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
+	github.com/TheTitanrain/w32 v0.0.0-20200114052255-2654d97dbd3d // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-vgo/robotgo v0.100.10 // indirect
+	github.com/kindlyfire/go-keylogger v0.0.0-20180814110756-f2fda1034e3a // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible // indirect
