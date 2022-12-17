@@ -12,14 +12,15 @@ import (
 var screenX, screenY = robotgo.GetScreenSize()
 var centerX, centerY = GetScreenCenter(screenX, screenY)
 var isEnabled = true
-var minResponseTime = 80  // in milliseconds
-var maxResponseTime = 130 // in milliseconds
+var minResponseTime = 100 // in milliseconds
+var maxResponseTime = 120 // in milliseconds
 var detectColor = "#9a24ab"
 var lastColor = ""
 var purple, _ = colorful.Hex(detectColor)
 
 const (
-	delayKeyFetch = 10 // in milliseconds
+	delayKeyFetch   = 10 // in milliseconds
+	delayColorFetch = 5  // in milliseconds
 )
 
 func main() {
@@ -27,11 +28,11 @@ func main() {
 
 	fmt.Printf("> Screen resolution: %v x %v\n\n", screenX, screenY)
 	fmt.Printf("> Software enabled: %v\n", isEnabled)
-	fmt.Printf("> Min response time: %v\n", minResponseTime)
-	fmt.Printf("> Max response time: %v\n", maxResponseTime)
+	fmt.Printf("> Min response time: %v ms\n", minResponseTime)
+	fmt.Printf("> Max response time: %v ms\n", maxResponseTime)
 	fmt.Printf("> Detect color: %v\n\n", detectColor)
 
-	fmt.Printf("> (Use 'p' to toggle)\n\n")
+	fmt.Printf("> (Use '\\' to toggle)\n\n")
 
 	go func() {
 		kl := keylogger.NewKeylogger()
@@ -39,8 +40,13 @@ func main() {
 		for {
 			key := kl.GetKey()
 
-			// keycode 80 = p
-			if (!key.Empty) && (key.Keycode == 80) {
+			// only for debugging
+			//if !key.Empty {
+			//	fmt.Printf("Keycode: %v | Rune: %v\n", key.Keycode, key.Rune)
+			//}
+
+			// keycode = \
+			if (!key.Empty) && (key.Keycode == 220 && key.Rune == 92) {
 				isEnabled = !isEnabled
 				fmt.Printf("> Software enabled: %v\n", isEnabled)
 			}
@@ -66,7 +72,7 @@ func main() {
 		// for debugging only
 		//fmt.Printf("Distance: %v\n", d)
 
-		if d <= 0.4 {
+		if d <= 0.5 {
 			robotgo.KeyToggle("a", "up")
 			robotgo.KeyToggle("s", "up")
 
@@ -78,6 +84,8 @@ func main() {
 		//fmt.Printf("Color of pixel at (%d, %d) is 0x%s\n", centerX, centerY, color)
 
 		lastColor = color
+
+		//time.Sleep(delayColorFetch * time.Millisecond)
 	}
 }
 
