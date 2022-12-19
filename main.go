@@ -3,89 +3,87 @@ package main
 import (
 	"fmt"
 	"github.com/go-vgo/robotgo"
-	"github.com/kindlyfire/go-keylogger"
+	"github.com/gonutz/w32/v2"
 	"github.com/lucasb-eyer/go-colorful"
-	"math/rand"
 	"time"
 )
 
 var screenX, screenY = robotgo.GetScreenSize()
 var centerX, centerY = GetScreenCenter(screenX, screenY)
 var isEnabled = true
-var minResponseTime = 100 // in milliseconds
-var maxResponseTime = 120 // in milliseconds
-var detectColor = "#9a24ab"
-var lastColor = ""
-var purple, _ = colorful.Hex(detectColor)
+var minRT = 1 // in milliseconds
+var maxRT = 2 // in milliseconds
+var dc, _ = colorful.Hex("#a145a3")
 
 const (
-	delayKeyFetch   = 10 // in milliseconds
-	delayColorFetch = 5  // in milliseconds
+	ad = 0.5
 )
 
 func main() {
 	fmt.Println("[ sus software utility started! ]")
 
-	fmt.Printf("> Screen resolution: %v x %v\n\n", screenX, screenY)
+	fmt.Printf("> Screen resolution: %vx%v\n\n", screenX, screenY)
 	fmt.Printf("> Software enabled: %v\n", isEnabled)
-	fmt.Printf("> Min response time: %v ms\n", minResponseTime)
-	fmt.Printf("> Max response time: %v ms\n", maxResponseTime)
-	fmt.Printf("> Detect color: %v\n\n", detectColor)
+	fmt.Printf("> Min response time: %vms\n", minRT)
+	fmt.Printf("> Max response time: %vms\n", maxRT)
+	fmt.Printf("> Detect color: %v\n\n", dc.Hex())
 
-	fmt.Printf("> (Use '\\' to toggle)\n\n")
+	//fmt.Printf("> (Use '\\' to toggle)\n\n")
+
+	//HideConsole()
 
 	go func() {
-		kl := keylogger.NewKeylogger()
-
 		for {
-			key := kl.GetKey()
-
-			// only for debugging
-			//if !key.Empty {
-			//	fmt.Printf("Keycode: %v | Rune: %v\n", key.Keycode, key.Rune)
-			//}
-
-			// keycode = \
-			if (!key.Empty) && (key.Keycode == 220 && key.Rune == 92) {
-				isEnabled = !isEnabled
-				fmt.Printf("> Software enabled: %v\n", isEnabled)
-			}
-
-			time.Sleep(delayKeyFetch * time.Millisecond)
+			isEnabled = w32.GetAsyncKeyState(w32.VK_RBUTTON) == 32768
+			time.Sleep(time.Duration(10) * time.Millisecond)
 		}
 	}()
 
+	// extra checks
+	//for i := 1; i < 10; i++ {
+	//	go CreateScreenListener(0, i)
+	//}
+	//go CreateScreenListener(1, 0)
+	//go CreateScreenListener(-1, 0)
+	//go CreateScreenListener(0, -1)
+
+	// center check
+	CreateScreenListener(0, 0)
+}
+
+func CreateScreenListener(offsetX int, offsetY int) {
 	for {
-		color := robotgo.GetPixelColor(centerX, centerY)
+		color := robotgo.GetPixelColor(centerX+offsetX, centerY+offsetY)
+
+		//fmt.Printf("Color at pixel (%v, %v): %v\n", centerX+offsetX, centerY+offsetY, color)
 
 		if !isEnabled {
 			continue
 		}
 
-		if lastColor == color {
-			continue
-		}
-
 		c, _ := colorful.Hex("#" + color)
-		d := c.DistanceLab(purple)
+		d := c.DistanceLab(dc)
 
 		// for debugging only
 		//fmt.Printf("Distance: %v\n", d)
 
-		if d <= 0.5 {
-			robotgo.KeyToggle("a", "up")
-			robotgo.KeyToggle("s", "up")
-
-			robotgo.MouseSleep = rand.Intn(maxResponseTime-minResponseTime) + minResponseTime
+		if d <= ad {
 			robotgo.Click()
+
+			time.Sleep(time.Duration(20) * time.Millisecond)
+			continue
 		}
+	}
+}
 
-		// for debugging only
-		//fmt.Printf("Color of pixel at (%d, %d) is 0x%s\n", centerX, centerY, color)
-
-		lastColor = color
-
-		//time.Sleep(delayColorFetch * time.Millisecond)
+func HideConsole() {
+	console := w32.GetConsoleWindow()
+	if console == 0 {
+		return // no console attached
+	}
+	_, consoleProcID := w32.GetWindowThreadProcessId(console)
+	if w32.GetCurrentProcessId() == consoleProcID {
+		w32.ShowWindowAsync(console, w32.SW_HIDE)
 	}
 }
 
